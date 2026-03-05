@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: patientcheckout
+
+Globals:
+  Function:
+    CodeUri: patientcheckout
+    Runtime: java21
+    Architectures:
+      - x86_64
+    Timeout: 20
+    MemorySize: 512
+
+Resources:
+
+  PatientCheckoutS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-patient
+
+  PatientCheckoutSnsTopic:
+    Type: AWS::SNS::Topic
+
+
+  PatientCheckoutFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda.PatientCheckoutLambdaOnS3Event::handleRequest
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Sub ${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-patient
+        - SNSPublishMessagePolicy: 
+            TopicName: !GetAtt PatientCheckoutSnsTopic.TopicName
+      Environment: 
+        Variables: 
+          PATIENT_CHECKOUT_TOPIC: !Ref PatientCheckoutSnsTopic
+
+      Events:
+        S3Event:
+          Type: S3
+          Properties:
+            Bucket: !Ref PatientCheckoutS3Bucket
+            Events:
+              - s3:ObjectCreated:*
+
+  PatientBillManagementFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: lambda.BillManagementLambdaOnSnsEvent::handleRequest
+      Events:
+        SNSEvent:
+          Type: SNS
+          Properties:
+            Topic: !Ref PatientCheckoutSnsTopic
+            

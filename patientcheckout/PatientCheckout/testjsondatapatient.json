@@ -1,0 +1,14 @@
+[
+	{
+		"firstNm":"Nitish", 
+		"lastNm":"Kumar",
+		"mobNo":"1234567890", 
+		"ssn": "123456789" 
+	},
+	{
+		"firstNm":"Bhawana",
+		"lastNm":"Singh",  
+		"mobNo":"9087654321", 
+		"ssn": "123456781"
+	}
+]
